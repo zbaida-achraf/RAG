@@ -1,0 +1,23 @@
+services:
+  rag-assistant:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama-init/init.sh:/init.sh
+    entrypoint: ["/bin/sh", "/init.sh"]
+
+volumes:
+  ollama_data:
