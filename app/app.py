@@ -27,37 +27,44 @@ Answer:
 """
 
 # Vérifie si Ollama est disponible
-def wait_for_ollama_ready(host="http://localhost:11434", timeout=60):
-    import streamlit as st
-    import time
-    import requests
+def wait_for_ollama_ready(model_name="mistral", host="http://ollama:11434", timeout=60):
 
-    st.info("⏳ Connexion à Ollama...")
+    status = st.empty()
+    
+    data = {
+        "model": model_name,
+        "prompt": "ping",
+        "stream": False
+    }
+
     start = time.time()
     while time.time() - start < timeout:
         try:
-            res = requests.get(f"{host}/api/tags")
+            res = requests.post(f"{host}/api/generate", json=data)
             if res.status_code == 200:
+                status.success(f"✅ Ollama est prêt avec le modèle '{model_name}'")
                 return True
-        except Exception:
+        except requests.exceptions.RequestException:
             pass
         time.sleep(2)
 
-    st.error("❌ Ollama n’a pas répondu dans les délais.")
+    status.error(f"❌ Ollama ne répond pas avec le modèle '{model_name}'.")
     return False
+
 
 
 @st.cache_resource
 def get_models(model_name):
     ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
     
-    if not wait_for_ollama_ready(ollama_host, timeout=120):
+    if not wait_for_ollama_ready(model_name=model_name, host=ollama_host, timeout=120):
         st.stop()
 
-    embedding_model = OllamaEmbeddings(model=model_name, base_url=ollama_host)
+    embedding_model = OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_host)
     language_model = OllamaLLM(model=model_name, temperature=0.0, base_url=ollama_host)
 
     return embedding_model, language_model
+
 
 
 def load_all_pdfs_from_directory(directory_path):
