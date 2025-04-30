@@ -60,7 +60,7 @@ def get_models(model_name):
     if not wait_for_ollama_ready(model_name=model_name, host=ollama_host, timeout=120):
         st.stop()
 
-    embedding_model = OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_host)
+    embedding_model = OllamaEmbeddings(model=model_name, base_url=ollama_host)
     language_model = OllamaLLM(model=model_name, temperature=0.0, base_url=ollama_host)
 
     return embedding_model, language_model
